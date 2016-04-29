@@ -3,10 +3,12 @@ import java.util.*;
 public class Treap<T extends Comparable>
 {
     private TreapNode<T> root;
+    int size;
 
     public Treap()
     {
         root = null;
+        size = 0;
     }
 
     public void add(T element, int priority)
@@ -19,6 +21,11 @@ public class Treap<T extends Comparable>
         } else {
             add(newNode, root);
         }
+        size++;
+    }
+
+    public int getSize(){
+        return this.size;
     }
 
     private void add(TreapNode<T> node, TreapNode<T> root)
