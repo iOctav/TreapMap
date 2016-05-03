@@ -6,50 +6,38 @@ import static junit.framework.Assert.*;
 
 public class TreapTest {
     @Test
-    public void testAdd() throws Exception
+    public void testPut() throws Exception
     {
-        Treap<Integer> treap = new Treap<Integer>();
-        treap.add(10, 7);
-        treap.add(7, 4);
-        treap.add(4, 5);
-        treap.add(12, 2);
-        assertEquals("Check left tree", treap.contains(7), true);
+        Treap<Integer> treap = new Treap<Integer>(13, 8);
+        treap.put(10, 10);
+        treap.put(7, 7);
+        treap.put(4, 4);
+        treap.put(12, 12);
+        assertEquals("Check left tree", treap.containsKey(7), true);
     }
 
     @AfterClass
     public static void testDisplay() throws Exception
     {
-        Treap<Integer> treap = new Treap<Integer>();
-        treap.add(10, 7);
-        treap.add(7, 4);
-        treap.add(4, 5);
-        treap.add(12, 2);
-        treap.add(57,100);
+        Treap<Integer> treap = new Treap<Integer>(151, 5);
+        treap.put(11, 11);
+        treap.put(7, 7);
+        treap.put(4, 4);
+        treap.put(12, 12);
+        treap.put(57, 57);
         treap.display();
-    }
-
-    @Test
-    public void testGetSize() throws Exception
-    {
-        Treap<Integer> treap = new Treap<Integer>();
-        treap.add(10, 7);
-        treap.add(7, 4);
-        treap.add(4, 5);
-        treap.add(12, 2);
-        treap.add(57,100);
-        assertEquals("Must be 5", treap.getSize(), 5);
     }
 
     @Test
     public void testContains() throws Exception
     {
-        Treap<Integer> treap = new Treap<Integer>();
-        treap.add(10, 7);
-        treap.add(7, 4);
-        treap.add(4, 5);
-        treap.add(12, 2);
-        treap.add(57,100);
-        assertTrue(treap.contains(4));
-        assertFalse(treap.contains(16));
+        Treap<Integer> treap = new Treap<Integer>(21, 9);
+        treap.put(10, 10);
+        treap.put(7, 7);
+        treap.put(4, 4);
+        treap.put(12, 12);
+        treap.put(57, 57);
+        assertTrue(treap.containsValue(4));
+        assertFalse(treap.containsKey(16));
     }
 }

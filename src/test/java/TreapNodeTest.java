@@ -7,7 +7,7 @@ public class TreapNodeTest {
     public void testConstructor() throws Exception
     {
         TreapNode<String> str = new TreapNode<String>("OSA", 8);
-        assertEquals("Check value, must be string - OSA", str.value, "OSA");
+        assertEquals("Check value, must be string - OSA", str.getValue(), "OSA");
     }
     @BeforeClass
     public static void testDisplay() throws Exception
