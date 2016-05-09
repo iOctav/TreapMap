@@ -1,59 +1,80 @@
 import org.junit.AfterClass;
 import org.junit.Test;
-
 import static junit.framework.Assert.*;
 
 
 public class TreapTest {
     @Test
-    public void testPut() throws Exception
+    public void testMerge() throws Exception
     {
-        Treap<Integer> treap = buildTreap();
-        assertEquals("Check left tree", treap.containsKey(7), true);
-    }
-
-    @AfterClass
-    public static void testDisplay() throws Exception
-    {
-        Treap<Integer> treap = buildTreapPri();
-        treap.display();
+        Treap first = new Treap(3, 4, null, null);
+        Treap second = new Treap(2, 7, null, null);
+        Treap three = new Treap (4, 5, null, null);
+        Treap souz = Treap.merge(first, three);
+        Treap souz2 = Treap.merge(second, souz);
+        assertEquals(souz2.right.left.root.value, 3);
     }
 
     @Test
-    public void testContains() throws Exception
+    public void testSplit() throws Exception
     {
-        Treap<Integer> treap = buildTreap();
-        assertTrue(treap.containsValue(4));
-        assertFalse(treap.containsKey(16));
-    }
-
-    public static Treap<Integer> buildTreap()
-    {
-        Treap<Integer> treap = new Treap<Integer>(58, 548);
-        treap.put(10, 10);
-        treap.put(7, 7);
-        treap.put(4, 4);
-        treap.put(12, 12);
-        treap.put(57, 57);
-        return treap;
-    }
-
-    public static Treap<Integer> buildTreapPri()
-    {
-        Treap<Integer> treap = new Treap<Integer>(58, 12);
-        treap.putPri(10, 3);
-        treap.putPri(7, 18);
-        treap.putPri(4, 21);
-        treap.putPri(12, 76);
-        treap.putPri(57, 1);
-        return treap;
+        Treap first = new Treap(3, 4, null, null);
+        Treap second = new Treap(2, 7, null, null);
+        Treap three = new Treap (4, 5, null, null);
+        Treap souz = Treap.merge(first, three);
+        Treap souz2 = Treap.merge(second, souz);
+        Treap splitTest1 = new Treap(null, 0, null, null);
+        Treap splitTest2 = new Treap(null, 0, null, null);
+        souz2.split(4, splitTest1, splitTest2);
+        assertEquals(splitTest1.right.left.root.value, 3);
     }
 
     @Test
-    public void testFirstKey()
-    {
-        Treap<Integer> treap = buildTreapPri();
-        assertEquals(treap.SizeOf(treap.root), 1);
+    public void testAdd() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        assertEquals(first.right.right.root.value, 10);
     }
 
+    @Test
+    public void testAdd2() throws Exception {
+        Treap first = new Treap(3, 500, null, null);
+        first.add(9);
+        assertNotNull(first.root.priority);
+    }
+
+    @Test
+    public void testCreateWithAdd() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        Treap second = first.createWithAdd(9, 3);
+        assertEquals(second.right.root.value, 9);
+    }
+
+    @Test
+    public void testRemove() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(3, 4);
+        first.remove(3);
+        assertEquals(first.left.root.value, null);
+    }
+
+    @Test
+    public void testSizeOf() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.remove(3);
+        assertEquals(Treap.sizeOf(first), 2);
+    }
+
+    @Test
+    public void testKthNode() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        assertEquals(first.kthNode(1), 9);
+    }
 }

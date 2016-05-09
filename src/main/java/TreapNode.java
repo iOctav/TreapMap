@@ -2,12 +2,8 @@ import java.util.Comparator;
 
 public class TreapNode<T extends Comparable>
 {
-    TreapNode left;
-    TreapNode right;
-    TreapNode parent;
-    private T value;
-    int size;
-    int priority;
+    public T value;
+    public int priority;
     Comparator<T> comparator;
 
     public TreapNode(T value, int priority)

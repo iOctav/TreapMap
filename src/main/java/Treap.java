@@ -1,392 +1,155 @@
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
+import com.sun.istack.internal.NotNull;
+import java.util.Random;
 
 
-public class Treap<T extends Comparable> implements SortedMap, Cloneable
-{
-    public TreapNode<T> root;
+public class Treap<T extends Comparable> implements Cloneable {
+    TreapNode<T> root;
+    int size;
 
-    public Treap()
-    {
-        root = null;
-        root.size = 0;
+    public Treap<T> left;
+    public Treap<T> right;
+
+    public Treap(T value, int priority, Treap left, Treap right) {
+        this.root = new TreapNode<T>(value, priority);
+        this.left = left;
+        this.right = right;
+        size = 1;
     }
 
-    public Treap(TreapNode<T> root)
-    {
-        this.root = root;
-        root.size = 0;
+    // only for internals methods, refresh values without created new object
+    private void update(T value, int priority, Treap left, Treap right) {
+        this.root.value = value;
+        this.root.priority = priority;
+        this.left = left;
+        this.right = right;
+        this.size = size;
     }
 
-    public Treap(T rootValue, int rootPriority)
-    {
-        root = new TreapNode<T>(rootValue, rootPriority);
-        root.size = 0;
+    // only for internals methods, refresh values without created new object
+    private void update(Treap<T> tree) {
+        this.root.value = tree.root.value;
+        this.root.priority = tree.root.priority;
+        this.left = tree.left;
+        this.right = tree.right;
+        this.size = tree.size;
     }
 
-    public void add(T element, int priority)
-    {
-        TreapNode<T> newNode = new TreapNode<T>(element, priority);
+    // !!!Values Left Treap >= Right Treap!!!
+    public static Treap merge(Treap L, Treap R) {
+        if (R == null || R.root.value == null) return L;
+        if (L == null || L.root.value == null) return R;
 
-        if (root == null)
-        {
-            root = newNode;
-
+        Treap ans;
+        if (L.root.priority > R.root.priority) {
+            Treap newR = merge(L.right, R);
+            ans = new Treap(L.root.value, L.root.priority, L.left, newR);
         } else {
-            add(newNode, root);
+            Treap newL = merge(L, R.left);
+            ans = new Treap(R.root.value, R.root.priority, newL, R.right);
         }
-        this.root.size++;
+        ans.recalc();
+        return ans;
     }
 
-    public int SizeOf(TreapNode<T> node){
-        return node == null ? 0 : node.size;
-    }
 
-    private void add(TreapNode<T> node, TreapNode<T> root)
-    {
-        if (node.getValue().compareTo(root.getValue()) < 0) {
-            if (root.left == null) {
-                root.left = node;
-                node.parent = root;
+    // !!! need L and R Treap with root.value = null !!!
+    public void split(T value, @NotNull Treap<T> L, @NotNull Treap<T> R) {
+        Treap newTree = new Treap(null, 0, null, null);
+        int compare = this.root.value.compareTo(value);
+        if (compare <= 0)
+        {
+            if (this.right == null || this.right.root.value == null) {
+                R.root.value = null;
             } else {
-                add(node, root.left);
+                right.split(value, newTree, R);
             }
-            if (root.priority > root.left.priority)
-            {
-                rotateRight(root);
-            }
-        } else
+            L.update(this.root.value, this.root.priority, this.left, newTree);
+            L.recalc();
+        }
+        else
         {
-            if (root.right == null)
-            {
-                root.right = node;
-                node.parent = root;
-            } else
-            {
-                add(node, root.right);
+            if (this.left == null || this.left.root.value == null) {
+                L.root.value = null;
+            } else {
+                this.left.split(value, L, newTree);
             }
-            if (root.priority > root.right.priority)
-            {
-                rotateLeft(root);
-            }
+            R.update(this.root.value, this.root.priority, newTree, this.right);
+            R.recalc();
         }
     }
 
-    public T KthElement(int K)
-    {
-        TreapNode<T> cur = this.root;
-        while (cur != null)
-        {
-            int sizeLeft = SizeOf(cur.left);
-            if(sizeLeft == K)
-            {
-                return cur.getValue();
-            }
-
-            cur = sizeLeft > K ? cur.left :cur.right;
-            if (sizeLeft < K)
-            {
-                K -= sizeLeft + 1;
-            }
-        }
-        return null;
+    // add node to this treap
+    public void add(T value, int priority) {
+        Treap l = new Treap(null, 0, null, null);
+        Treap r = new Treap(null, 0, null, null);
+        this.split(value, l, r);
+        Treap m = new Treap(value, priority, null, null);
+        this.update(merge(merge(l, m), r));
     }
 
-    private int SearchKElement (T element)
-    {
-        for (int i = 0; i < SizeOf(this.root); i++)
-        {
-            if (element == KthElement(i))
-            {
-                return i;
-            }
-        }
-        return 0;
-    }
-
-    private void rotateLeft(TreapNode<T> node)
-    {
-        if (node.right != null)
-        {
-            TreapNode<T> A = node;
-            TreapNode<T> B = node.right;
-
-            TreapNode<T> tmp = B.left;
-            B.left = A;
-            TreapNode<T> oldParent = A.parent;
-            A.parent = B;
-            A.right = tmp;
-            if (tmp != null)
-            {
-                tmp.parent = A;
-            }
-            B.parent = oldParent;
-            if (oldParent == null)
-            {
-                root = B;
-            } else
-            {
-                if (oldParent.left == A)
-                {
-                    oldParent.left = B;
-                } else
-                {
-                    oldParent.right = B;
-                }
-            }
-        }
-
-    }
-
-    private void rotateRight(TreapNode<T> node)
-    {
-        if (node.left != null)
-        {
-            TreapNode<T> A = node.left;
-            TreapNode<T> B = node;
-            TreapNode<T> tmp = A.right;
-            A.right = B;
-            TreapNode<T> oldParent = B.parent;
-            B.parent = A;
-            B.left = tmp;
-            if (tmp != null)
-            {
-                tmp.parent = B;
-            }
-
-            A.parent = oldParent;
-            if (oldParent == null)
-            {
-                root = A;
-            }
-            else
-            {
-                if (B == oldParent.left)
-                {
-                    oldParent.left = A;
-                }
-                else
-                {
-                    oldParent.right = A;
-                }
-            }
-        }
-    }
-
-    private TreapNode<T> getNode(T value, TreapNode<T> root)
-    {
-        if (root == null)
-        {
-            return null;
-        }
-
-        int compare = value.compareTo(root.getValue());
-        if (compare == 0)
-        {
-            return root;
-        } else if (compare < 0)
-        {
-            return getNode(value, root.left);
-        } else
-        {
-            return getNode(value, root.right);
-        }
-    }
-
-    private boolean contains(T element)
-    {
-        TreapNode<T> node = getNode(element, root);
-        return node != null;
-    }
-
-    public void display()
-    {
-        queueNodes(root);
-    }
-
-    public void queueNodes(TreapNode<T> locRoot)
-    {
-        Queue<TreapNode> q = new LinkedList<TreapNode>();
-        TreapNode<T> x = locRoot;
-        TreapNode<T> y = null;
-        if (x == null)
-        {
-            return;
-        } else
-        q.add(x);
-        while (!q.isEmpty())
-        {
-            y = q.poll();
-            if (y.left != null)
-            {
-                q.add(y.left);
-            }
-            if (y.right != null)
-            {
-                q.add(y.right);
-            }
-            y.displayNode();
-        }
-    }
-
-    // Если компаратор задан, вы передаем его, если нет - то null
-    public Comparator comparator() {
-        return root.comparator != null ? root.comparator : null;
-    }
-
-    // возвращает дерево от fromkey до toKey
-    public SortedMap subMap(Object fromKey, Object toKey) {
-        if (!contains((T) toKey) || !contains((T) fromKey)) {
-            return null;
-        }
-        Treap<T> tmp = new Treap<T>();
+    public void add(T value) {
+        Treap l = new Treap(null, 0, null, null);
+        Treap r = new Treap(null, 0, null, null);
+        split(value, l, r);
         Random rand = new Random();
-        for (int i = SearchKElement((T) fromKey); i < SearchKElement((T) toKey); i++)
-        {
-            tmp.add(KthElement(i), rand.nextInt(Integer.SIZE - 1));
-        }
-        return tmp;
+        Treap m = new Treap(value, rand.nextInt(Integer.MAX_VALUE - 1), null, null);
+        this.update(merge(merge(l, m), r));
     }
 
-    // возвращает дерево от firstKey до toKey
-    public SortedMap headMap(Object toKey) {
-        if (!contains((T) toKey)) {
-            return null;
-        }
-        Treap<T> tmp = new Treap<T>();
-        Random rand = new Random();
-        for (int i = 0; i < SearchKElement((T) toKey); i++)
-        {
-            tmp.add(KthElement(i), rand.nextInt(Integer.SIZE - 1));
-        }
-        return tmp;
+    // return treap with new node
+    public Treap<T> createWithAdd(T value, int priority) {
+        Treap<T> l = new Treap<T>(null, 0, null, null);
+        Treap<T> r = new Treap<T>(null, 0, null, null);
+        split(value, l, r);
+        Treap<T> m = new Treap<T>(value, priority, null, null);
+        return merge(merge(l, m), r);
     }
 
-    // возвращает дерево от fromKey до lastKey
-    public SortedMap tailMap(Object fromKey) {
-        if (!contains((T) fromKey)) {
-            return null;
-        }
-        Treap<T> tmp = new Treap<T>();
-        Random rand = new Random();
-        for (int i = SearchKElement((T) fromKey); i < SizeOf(this.root); i++)
-        {
-            tmp.add(KthElement(i), rand.nextInt(Integer.SIZE - 1));
-        }
-        return tmp;
-    }
-
-    // возвращает 0-ое значение(ключ)
-    public T firstKey() {
-        return KthElement(0);
-    }
-
-    // возвращает последнее значение(ключ)
-    public T lastKey() {
-        return KthElement(SizeOf(this.root) - 1);
-    }
-
-    // возвращает размер дерева/поддереве из данного ключа
-    public int size() {
-        return SizeOf(root);
-    }
-
-    // при отсутствие ключа, возвращает true, при наличие ключа - false
-    public boolean isEmpty() {
-        if (root == null)
-        {
-            return true;
+    // remove node
+    public void remove(T x) {
+        Treap<T> l = new Treap<T>(null, 0, null, null);
+        Treap<T> r = new Treap<T>(null, 0, null, null);
+        Treap<T> m = new Treap<T>(null, 0, null, null);
+        this.split(x, l, r);
+        T tmp;
+        if (l.right == null || l.right.root.value == null) {
+            if (l.left == null || l.left.root.value == null) {
+                this.update(r);
+                return;
+            } else {
+                tmp = l.root.value;
+            }
         } else {
-            return false;
+            tmp = l.root.value;
         }
+        l.split(tmp, m, l);
+        this.update(merge(l, r));
     }
 
-    // проверка наличия элемента по ключу
-    public boolean containsKey(Object key) {
-        return contains((T)key);
+    protected void recalc() {
+        this.size = sizeOf(this.left) + sizeOf(this.right) + 1;
     }
 
-    // проверка наличия элемента по значению
-    public boolean containsValue(Object value) {
-        return contains((T)value);
+    public static int sizeOf(Treap treap) {
+        return treap == null || treap.root.value == null ? 0 : treap.size;
     }
 
-    // получение узла по значению(ключу)
-    public Object get(Object key) {
-        if (!containsKey(key)) {
-            return null;
-        }
-        return getNode((T)key, root);
-    }
-
-    // добавление элемента
-    public Object put(Object key, Object value)
+    public T kthNode(int K)
     {
-        Random rand = new Random();
-        add((T)value, rand.nextInt(Integer.SIZE - 1));
+        Treap cur = this;
+        while (cur != null || cur.root.value != null)
+        {
+            int sizeLeft = sizeOf(cur.left);
+
+            if (sizeLeft == K)
+                return (T)cur.root.value;
+
+            cur = sizeLeft > K ? cur.left : cur.right;
+            if (sizeLeft < K)
+                K -= sizeLeft + 1;
+        }
         return null;
     }
 
-    public void putPri(Object key, int priority)
-    {
-        add((T)key, priority);
-        return;
-    }
 
-    // удаление элемента по ключу(значению)
-    public Object remove(Object key) {
-        TreapNode<T> rmv = getNode((T) key, this.root);
-        TreapNode<T> left = rmv.left;
-        TreapNode<T> right = rmv.right;
-        if (rmv.parent.left.getValue() == rmv.getValue())
-        {
-            rmv.parent.left = null;
-        } else
-        {
-            rmv.parent.right = null;
-        }
-        add(left, this.root);
-        add(right, this.root);
-        return null;
-    }
-
-    // добавление всех узлов из Map m
-    public void putAll(Map m) {
-        Treap<T> das = (Treap<T>) m;
-        add(das.root, this.root);
-        return;
-    }
-
-    // удаление всех узлов
-    public void clear() {
-        for (int i = 0; i < SizeOf(this.root); i++)
-        {
-            remove(KthElement(i));
-        }
-        return;
-    }
-
-    // возвращает коллекцию ключей
-    public Set keySet() {
-        Set<T> ers = new CopyOnWriteArraySet<T>();
-        for (int i = 0; i < SizeOf(this.root); i++)
-        {
-            ers.add(KthElement(i));
-        }
-        return ers;
-    }
-
-    // возвращает коллекцию значений
-    public Collection values() {
-        Collection<T> ers = new CopyOnWriteArraySet<T>();
-        for (int i = 0; i < SizeOf(this.root); i++)
-        {
-            ers.add(KthElement(i));
-        }
-        return ers;
-    }
-
-    public Set<Entry> entrySet() {
-        return null;
-    }
 }
