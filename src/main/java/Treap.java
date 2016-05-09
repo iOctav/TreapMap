@@ -4,7 +4,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class Treap<T extends Comparable> implements SortedMap, Cloneable
 {
-    private TreapNode<T> root;
+    public TreapNode<T> root;
 
     public Treap()
     {
@@ -15,29 +15,30 @@ public class Treap<T extends Comparable> implements SortedMap, Cloneable
     public Treap(TreapNode<T> root)
     {
         this.root = root;
-        root.size = 1;
+        root.size = 0;
     }
 
     public Treap(T rootValue, int rootPriority)
     {
         root = new TreapNode<T>(rootValue, rootPriority);
-        root.size = 1;
+        root.size = 0;
     }
 
-    private void add(T element, int priority)
+    public void add(T element, int priority)
     {
         TreapNode<T> newNode = new TreapNode<T>(element, priority);
 
         if (root == null)
         {
             root = newNode;
+
         } else {
             add(newNode, root);
         }
-        root.size++;
+        this.root.size++;
     }
 
-    private int SizeOf(TreapNode<T> node){
+    public int SizeOf(TreapNode<T> node){
         return node == null ? 0 : node.size;
     }
 
@@ -71,7 +72,7 @@ public class Treap<T extends Comparable> implements SortedMap, Cloneable
         }
     }
 
-    private T KthElement(int K)
+    public T KthElement(int K)
     {
         TreapNode<T> cur = this.root;
         while (cur != null)
@@ -277,34 +278,12 @@ public class Treap<T extends Comparable> implements SortedMap, Cloneable
 
     // возвращает 0-ое значение(ключ)
     public T firstKey() {
-        T tmp = root.getValue();
-
-        for (int i = 0; i < size(); i++)
-        {
-            T srt = KthElement(i);
-            int compare = srt.compareTo(tmp);
-            if (compare <= 0)
-            {
-                tmp = srt;
-            }
-        }
-        return tmp;
+        return KthElement(0);
     }
 
     // возвращает последнее значение(ключ)
     public T lastKey() {
-        T tmp = root.getValue();
-
-        for (int i = 0; i < size(); i++)
-        {
-            T srt = KthElement(i);
-            int compare = srt.compareTo(tmp);
-            if (compare >= 0)
-            {
-                tmp = srt;
-            }
-        }
-        return tmp;
+        return KthElement(SizeOf(this.root) - 1);
     }
 
     // возвращает размер дерева/поддереве из данного ключа
@@ -341,10 +320,17 @@ public class Treap<T extends Comparable> implements SortedMap, Cloneable
     }
 
     // добавление элемента
-    public Object put(Object key, Object value) {
+    public Object put(Object key, Object value)
+    {
         Random rand = new Random();
         add((T)value, rand.nextInt(Integer.SIZE - 1));
         return null;
+    }
+
+    public void putPri(Object key, int priority)
+    {
+        add((T)key, priority);
+        return;
     }
 
     // удаление элемента по ключу(значению)
