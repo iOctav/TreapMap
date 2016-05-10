@@ -4,19 +4,11 @@ public class TreapNode<T extends Comparable>
 {
     public T value;
     public int priority;
-    Comparator<T> comparator;
 
     public TreapNode(T value, int priority)
     {
         this.value = value;
         this.priority = priority;
-    }
-
-    public TreapNode(T value, int priority, Comparator<T> comparator)
-    {
-        this.value = value;
-        this.priority = priority;
-        this.comparator = comparator;
     }
 
     public void displayNode()

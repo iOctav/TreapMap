@@ -1,8 +1,9 @@
 import com.sun.istack.internal.NotNull;
-import java.util.Random;
+
+import java.util.*;
 
 
-public class Treap<T extends Comparable> implements Cloneable {
+public class Treap<T extends Comparable> implements Cloneable, SortedMap {
     TreapNode<T> root;
     int size;
 
@@ -130,19 +131,17 @@ public class Treap<T extends Comparable> implements Cloneable {
         this.size = sizeOf(this.left) + sizeOf(this.right) + 1;
     }
 
-    public static int sizeOf(Treap treap) {
-        return treap == null || treap.root.value == null ? 0 : treap.size;
+    public static int sizeOf(Treap treap) {        return treap == null || treap.root.value == null ? 0 : treap.size;
     }
 
-    public T kthNode(int K)
-    {
+    public TreapNode<T> kthNode(int K) {
         Treap cur = this;
         while (cur != null || cur.root.value != null)
         {
             int sizeLeft = sizeOf(cur.left);
 
             if (sizeLeft == K)
-                return (T)cur.root.value;
+                return (TreapNode<T>) cur.root;
 
             cur = sizeLeft > K ? cur.left : cur.right;
             if (sizeLeft < K)
@@ -151,5 +150,146 @@ public class Treap<T extends Comparable> implements Cloneable {
         return null;
     }
 
+    public int kOfNode(T node) {
+        for (int i = 0; i < sizeOf(this); i++)
+        {
+            if (node.equals(kthNode(i).value)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
+
+    public Comparator comparator() {
+        return null;
+    }
+
+    public SortedMap subMap(Object fromKey, Object toKey) {
+        int fromK = this.kOfNode((T)fromKey);
+        int toK = this.kOfNode((T)toKey);
+        if (fromK == -1 || toK == -1 || toK < fromK) {
+            return null;
+        }
+        Treap subMap = new Treap(kthNode(fromK).value, kthNode(fromK).priority, null, null);
+        for (int i = fromK + 1; i <= toK; i++)
+        {
+            TreapNode<T> tmp = kthNode(i);
+            subMap.add(tmp.value, tmp.priority);
+        }
+        return subMap;
+    }
+
+    public SortedMap headMap(Object toKey) {
+        int toK = this.kOfNode((T)toKey);
+        if (toK == -1)
+        {
+            return null;
+        }
+        TreapNode<T> tmp1 = this.kthNode(toK);
+        Treap headMap = new Treap(tmp1.value, tmp1.priority, null, null);
+        for (int i = 0; i < toK; i++)
+        {
+            TreapNode<T> tmp = this.kthNode(i);
+            headMap.add(tmp.value, tmp.priority);
+        }
+        return headMap;
+    }
+
+    public SortedMap tailMap(Object fromKey) {
+        int fromK = kOfNode((T)fromKey);
+        if (fromK == -1)
+        {
+            return null;
+        }
+        TreapNode<T> tmp1 = kthNode(fromK);
+        Treap<T> tailMap = new Treap<T>(tmp1.value, tmp1.priority, null, null);
+        for (int i = (fromK +1); i < sizeOf(this); i++)
+        {
+            TreapNode<T> tmp = kthNode(i);
+            tailMap.add(tmp.value, tmp.priority);
+        }
+        return tailMap;
+    }
+
+    public Object firstKey() {
+        return kthNode(0).value;
+    }
+
+    public Object lastKey() {
+        return kthNode(sizeOf(this) - 1).value;
+    }
+
+    public int size() {
+        return sizeOf(this);
+    }
+
+    public boolean isEmpty() {
+        if (root.value == null) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean containsKey(Object key) {
+        return kOfNode((T)key) != -1;
+    }
+
+    // Because value == key in Treap!!
+    public boolean containsValue(Object value) {
+        return containsKey(value);
+    }
+
+    public Object get(Object key) {
+        if (!containsKey(key)) {
+            return null;
+        }
+        return kthNode(kOfNode((T) key));
+    }
+
+    public Object put(Object key, Object value) {
+        if (key.equals(value)) {
+            this.add((T)value);
+        }
+        return null;
+    }
+
+    public Object remove(Object key) {
+        if (!containsKey(key)) {
+            return null;
+        }
+        TreapNode<T> removedNode = kthNode(kOfNode((T)key));
+        this.remove((T) key);
+        return removedNode;
+    }
+
+    public void putAll(Map m) {
+        int size = sizeOf((Treap)m);
+        for (int i = 0; i < size; i++) {
+            TreapNode<T> tmp = ((Treap) m).kthNode(i);
+            this.add(tmp.value, tmp.priority);
+        }
+    }
+
+    public void clear() {
+        this.update(null, 0, null, null);
+    }
+
+    public Set keySet() {
+        return (Set)this.values();
+    }
+
+    public Collection values() {
+        Collection<T> keys = new ArrayList<T>();
+        for (int i = 0; i < sizeOf(this); i++)
+        {
+            keys.add(kthNode(i).value);
+        }
+        return keys;
+    }
+
+    //it is impossible, because key = value
+    public Set<Entry> entrySet() {
+        return null;
+    }
 }

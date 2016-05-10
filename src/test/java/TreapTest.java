@@ -1,5 +1,7 @@
-import org.junit.AfterClass;
 import org.junit.Test;
+
+import java.util.ArrayList;
+
 import static junit.framework.Assert.*;
 
 
@@ -75,6 +77,87 @@ public class TreapTest {
         Treap first = new Treap(3, 4, null, null);
         first.add(9, 3);
         first.add(10, 2);
-        assertEquals(first.kthNode(1), 9);
+        assertEquals(first.kthNode(1).value, 9);
+    }
+
+    @Test
+    public void testSubMap() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(4, 8);
+        Treap second = (Treap)first.subMap(4, 9);
+        assertEquals(first.right.root.value, 9);
+    }
+
+    @Test
+    public void testHeadMap() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(4, 8);
+        Treap second = (Treap)first.headMap(10);
+        assertEquals(second.right.right.root.value, 10);
+    }
+
+    @Test
+    public void testTailMap() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(4, 8);
+        Treap second = (Treap)first.tailMap(4);
+        assertEquals(second.right.right.root.value, 10);
+    }
+
+    @Test
+    public void testIsEmpty() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(4, 8);
+        assertFalse(first.isEmpty());
+    }
+
+    @Test
+    public void testContainsKeyValue() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(4, 8);
+        assertTrue(first.containsKey(9));
+        assertFalse(first.containsKey(142));
+    }
+
+    @Test
+    public void testGet() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(4, 8);
+        assertEquals(((TreapNode) first.get(4)).priority, 8);
+    }
+
+    @Test
+    public void testClear() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(4, 8);
+        first.clear();
+        assertNull(first.left);
+        assertNull(first.right);
+        assertEquals(first.root.priority, 0);
+        assertNull(first.root.value);
+    }
+
+    @Test
+    public void testValues() throws Exception {
+        Treap first = new Treap(3, 4, null, null);
+        first.add(9, 3);
+        first.add(10, 2);
+        first.add(4, 8);
+        ArrayList arr = (ArrayList) first.values();
+        assertEquals(arr.size(), 4);
     }
 }
