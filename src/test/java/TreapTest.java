@@ -14,7 +14,7 @@ public class TreapTest {
         Treap three = new Treap (4, 5, null, null);
         Treap souz = Treap.merge(first, three);
         Treap souz2 = Treap.merge(second, souz);
-        assertEquals(souz2.right.left.root.value, 3);
+        assertEquals(souz2.right.left.root.getValue(), 3);
     }
 
     @Test
@@ -28,7 +28,7 @@ public class TreapTest {
         Treap splitTest1 = new Treap(null, 0, null, null);
         Treap splitTest2 = new Treap(null, 0, null, null);
         souz2.split(4, splitTest1, splitTest2);
-        assertEquals(splitTest1.right.left.root.value, 3);
+        assertEquals(splitTest1.right.left.root.getValue(), 3);
     }
 
     @Test
@@ -36,21 +36,21 @@ public class TreapTest {
         Treap first = new Treap(3, 4, null, null);
         first.add(9, 3);
         first.add(10, 2);
-        assertEquals(first.right.right.root.value, 10);
+        assertEquals(first.right.right.root.getValue(), 10);
     }
 
     @Test
     public void testAdd2() throws Exception {
         Treap first = new Treap(3, 500, null, null);
         first.add(9);
-        assertNotNull(first.root.priority);
+        assertNotNull(first.root.getPriority());
     }
 
     @Test
     public void testCreateWithAdd() throws Exception {
         Treap first = new Treap(3, 4, null, null);
         Treap second = first.createWithAdd(9, 3);
-        assertEquals(second.right.root.value, 9);
+        assertEquals(second.right.root.getValue(), 9);
     }
 
     @Test
@@ -60,7 +60,7 @@ public class TreapTest {
         first.add(10, 2);
         first.add(3, 4);
         first.remove(3);
-        assertEquals(first.left.root.value, null);
+        assertEquals(first.left.root.getValue(), null);
     }
 
     @Test
@@ -77,7 +77,7 @@ public class TreapTest {
         Treap first = new Treap(3, 4, null, null);
         first.add(9, 3);
         first.add(10, 2);
-        assertEquals(first.kthNode(1).value, 9);
+        assertEquals(first.kthNode(1).getValue(), 9);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class TreapTest {
         first.add(10, 2);
         first.add(4, 8);
         Treap second = (Treap)first.subMap(4, 9);
-        assertEquals(first.right.root.value, 9);
+        assertEquals(first.right.root.getValue(), 9);
     }
 
     @Test
@@ -97,7 +97,7 @@ public class TreapTest {
         first.add(10, 2);
         first.add(4, 8);
         Treap second = (Treap)first.headMap(10);
-        assertEquals(second.right.right.root.value, 10);
+        assertEquals(second.right.right.root.getValue(), 10);
     }
 
     @Test
@@ -107,7 +107,7 @@ public class TreapTest {
         first.add(10, 2);
         first.add(4, 8);
         Treap second = (Treap)first.tailMap(4);
-        assertEquals(second.right.right.root.value, 10);
+        assertEquals(second.right.right.root.getValue(), 10);
     }
 
     @Test
@@ -135,7 +135,7 @@ public class TreapTest {
         first.add(9, 3);
         first.add(10, 2);
         first.add(4, 8);
-        assertEquals(((TreapNode) first.get(4)).priority, 8);
+        assertEquals(((TreapNode) first.get(4)).getPriority(), 8);
     }
 
     @Test
@@ -147,8 +147,8 @@ public class TreapTest {
         first.clear();
         assertNull(first.left);
         assertNull(first.right);
-        assertEquals(first.root.priority, 0);
-        assertNull(first.root.value);
+        assertEquals(first.root.getPriority(), 0);
+        assertNull(first.root.getValue());
     }
 
     @Test
