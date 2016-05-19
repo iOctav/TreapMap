@@ -7,109 +7,55 @@ import static junit.framework.Assert.*;
 
 public class TreapTest {
     @Test
-    public void testMerge() throws Exception
-    {
-        Treap first = new Treap(3, 4, null, null);
-        Treap second = new Treap(2, 7, null, null);
-        Treap three = new Treap (4, 5, null, null);
-        Treap souz = Treap.merge(first, three);
-        Treap souz2 = Treap.merge(second, souz);
-        assertEquals(souz2.right.left.root.getValue(), 3);
-    }
-
-    @Test
-    public void testSplit() throws Exception
-    {
-        Treap first = new Treap(3, 4, null, null);
-        Treap second = new Treap(2, 7, null, null);
-        Treap three = new Treap (4, 5, null, null);
-        Treap souz = Treap.merge(first, three);
-        Treap souz2 = Treap.merge(second, souz);
-        Treap splitTest1 = new Treap(null, 0, null, null);
-        Treap splitTest2 = new Treap(null, 0, null, null);
-        souz2.split(4, splitTest1, splitTest2);
-        assertEquals(splitTest1.right.left.root.getValue(), 3);
-    }
-
-    @Test
-    public void testAdd() throws Exception {
-        Treap first = new Treap(3, 4, null, null);
-        first.add(9, 3);
-        first.add(10, 2);
-        assertEquals(first.right.right.root.getValue(), 10);
-    }
-
-    @Test
-    public void testAdd2() throws Exception {
-        Treap first = new Treap(3, 500, null, null);
-        first.add(9);
-        assertNotNull(first.root.getPriority());
-    }
-
-    @Test
-    public void testCreateWithAdd() throws Exception {
-        Treap first = new Treap(3, 4, null, null);
-        Treap second = first.createWithAdd(9, 3);
-        assertEquals(second.right.root.getValue(), 9);
-    }
-
-    @Test
     public void testRemove() throws Exception {
-        Treap first = new Treap(3, 4, null, null);
-        first.add(9, 3);
-        first.add(10, 2);
-        first.add(3, 4);
-        first.remove(3);
-        assertEquals(first.left.root.getValue(), null);
+        Treap<Integer, Integer> first = new Treap<Integer, Integer>(12,3, 4, null, null);
+        first.put(29, 9, 3);
+        first.put(14, 10, 2);
+        first.put(21, 3, 4);
+        first.remove(29);
+        assertEquals(first.get(29), null);
     }
 
     @Test
     public void testSizeOf() throws Exception {
-        Treap first = new Treap(3, 4, null, null);
-        first.add(9, 3);
-        first.add(10, 2);
-        first.remove(3);
-        assertEquals(Treap.sizeOf(first), 2);
-    }
-
-    @Test
-    public void testKthNode() throws Exception {
-        Treap first = new Treap(3, 4, null, null);
-        first.add(9, 3);
-        first.add(10, 2);
-        assertEquals(first.kthNode(1).getValue(), 9);
+        Treap<Integer, Integer> first = new Treap<Integer, Integer>(12,3, 4, null, null);
+        first.put(29, 9, 3);
+        first.put(14, 10, 2);
+        first.put(21, 3, 4);
+        assertEquals(first.size(), 4);
     }
 
     @Test
     public void testSubMap() throws Exception {
-        Treap first = new Treap(3, 4, null, null);
-        first.add(9, 3);
-        first.add(10, 2);
-        first.add(4, 8);
-        Treap second = (Treap)first.subMap(4, 9);
-        assertEquals(first.right.root.getValue(), 9);
+        Treap<Integer, Integer> first = new Treap<Integer, Integer>(12,3, 4, null, null);
+        first.put(29, 9, 3);
+        first.put(14, 10, 2);
+        first.put(21, 3, 4);
+        Treap<Integer,Integer> second = (Treap<Integer,Integer>)first.subMap(14, 29);
+        assertEquals(second.get(29), (Integer)9);
     }
+
 
     @Test
     public void testHeadMap() throws Exception {
-        Treap first = new Treap(3, 4, null, null);
-        first.add(9, 3);
-        first.add(10, 2);
-        first.add(4, 8);
-        Treap second = (Treap)first.headMap(10);
-        assertEquals(second.right.right.root.getValue(), 10);
+        Treap<Integer, Integer> first = new Treap<Integer, Integer>(12,3, 4, null, null);
+        first.put(29, 9, 3);
+        first.put(14, 10, 2);
+        first.put(21, 3, 4);
+        Treap<Integer,Integer> second = (Treap<Integer,Integer>)first.headMap(29);
+        assertEquals(second.get(21), (Integer)3);
     }
 
     @Test
     public void testTailMap() throws Exception {
-        Treap first = new Treap(3, 4, null, null);
-        first.add(9, 3);
-        first.add(10, 2);
-        first.add(4, 8);
-        Treap second = (Treap)first.tailMap(4);
-        assertEquals(second.right.right.root.getValue(), 10);
+        Treap<Integer, Integer> first = new Treap<Integer, Integer>(12,3, 4, null, null);
+        first.put(29, 9, 3);
+        first.put(14, 10, 2);
+        first.put(21, 3, 4);
+        Treap<Integer,Integer> second = (Treap<Integer,Integer>)first.tailMap(21);
+        assertEquals(second.get(21), (Integer)3);
     }
-
+    /*
     @Test
     public void testIsEmpty() throws Exception {
         Treap first = new Treap(3, 4, null, null);
@@ -135,7 +81,7 @@ public class TreapTest {
         first.add(9, 3);
         first.add(10, 2);
         first.add(4, 8);
-        assertEquals(((TreapNode) first.get(4)).getPriority(), 8);
+        assertEquals(((Treap.TreapNode) first.get(4)).getPriority(), 8);
     }
 
     @Test
@@ -159,5 +105,5 @@ public class TreapTest {
         first.add(4, 8);
         ArrayList arr = (ArrayList) first.values();
         assertEquals(arr.size(), 4);
-    }
+    }*/
 }

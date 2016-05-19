@@ -1,156 +1,140 @@
 import com.sun.istack.internal.NotNull;
-
+import java.io.Serializable;
 import java.util.*;
 
 
-public class Treap<T extends Comparable> implements Cloneable, SortedMap {
-    public TreapNode<T> root;
+public class Treap<K, V extends Comparable<V>> implements Cloneable, SortedMap<K,V>, Serializable {
+    private TreapNode<K,V> root;
     private int size;
-    private Comparator<T> comparator;
 
-    public Treap<T> left;
-    public Treap<T> right;
+    public Treap<K,V> left;
+    public Treap<K,V> right;
 
-    public Treap(T value, int priority, Treap left, Treap right) {
-        this.root = new TreapNode<T>(value, priority);
-        this.left = left;
-        this.right = right;
+    public Treap(K keyRoot,V valueRoot, int priorityRoot, Treap<K,V> leftRoot, Treap<K,V> rightRoot) {
+        this.root = new TreapNode<K, V>(keyRoot, valueRoot, priorityRoot);
+        this.left = leftRoot;
+        this.right = rightRoot;
         size = 1;
     }
 
-    public Treap(T value, int priority, Treap left, Treap right, Comparator<T> comparator) {
-        this.root = new TreapNode<T>(value, priority);
-        this.left = left;
-        this.right = right;
+    /*public Treap(K keyRoot, V valueRoot, int priorityRoot, Treap leftRoot, Treap rightRoot, Comparator<V> comparator) {
+        this.root = new TreapNode<K,V>(keyRoot, valueRoot, priorityRoot);
+        this.left = leftRoot;
+        this.right = rightRoot;
         size = 1;
         this.comparator = comparator;
-    }
+    }*/
 
     // only for internals methods, refresh values without created new object
-    private void update(T value, int priority, Treap left, Treap right) {
-        this.root.setValue(value);
-        this.root.setPriority(priority);
+    private void update(K key,V value, int priority, Treap<K,V> left, Treap<K,V> right) {
+        this.root.value = value;
+        this.root.priority = priority;
+        this.root.key = key;
         this.left = left;
         this.right = right;
     }
 
     // only for internals methods, refresh values without created new object
-    private void update(Treap<T> tree) {
-        this.root.setValue(tree.root.getValue());
-        this.root.setPriority(tree.root.getPriority());
+    private void update(Treap<K,V> tree) {
+        this.root.value = tree.root.value;
+        this.root.priority = tree.root.priority;
+        this.root.key = tree.root.key;
         this.left = tree.left;
         this.right = tree.right;
         this.size = tree.size;
     }
 
     // !!!Values Left Treap >= Right Treap!!!
-    public static Treap merge(Treap L, Treap R) {
-        if (R == null || R.root.getValue() == null) return L;
-        if (L == null || L.root.getValue() == null) return R;
+    private Treap<K,V> merge(Treap<K,V> L, Treap<K,V> R) {
+        if (R == null || R.root.value == null) return L;
+        if (L == null || L.root.value == null) return R;
 
-        Treap ans;
-        if (L.root.getPriority() > R.root.getPriority()) {
-            Treap newR = merge(L.right, R);
-            ans = new Treap(L.root.getValue(), L.root.getPriority(), L.left, newR);
+        Treap<K,V> ans;
+        if (L.root.priority > R.root.priority) {
+            Treap<K,V> newR = merge(L.right, R);
+            ans = new Treap<K,V>(L.root.key, L.root.value, L.root.priority, L.left, newR);
         } else {
-            Treap newL = merge(L, R.left);
-            ans = new Treap(R.root.getValue(), R.root.getPriority(), newL, R.right);
+            Treap<K,V> newL = merge(L, R.left);
+            ans = new Treap<K,V>(R.root.key, R.root.value, R.root.priority, newL, R.right);
         }
         ans.recalc();
         return ans;
     }
 
-
     // !!! need L and R Treap with root.value = null !!!
-    public void split(T value, @NotNull Treap<T> L, @NotNull Treap<T> R) {
-        Treap newTree = new Treap(null, 0, null, null);
-        int compare = this.root.getValue().compareTo(value);
+    private void split(V value, @NotNull Treap<K,V> L, @NotNull Treap<K,V> R) {
+        Treap<K,V> newTree = new Treap<K,V>(null, null, 0, null, null);
+        int compare = this.root.value.compareTo(value);
         if (compare <= 0)
         {
-            if (this.right == null || this.right.root.getValue() == null) {
-                R.root.setValue(null);
+            if (this.right == null || this.right.root.value== null) {
+                R.root.value = null;
             } else {
                 right.split(value, newTree, R);
             }
-            L.update(this.root.getValue(), this.root.getPriority(), this.left, newTree);
+            L.update(this.root.key, this.root.value, this.root.priority, this.left, newTree);
             L.recalc();
         }
         else
         {
-            if (this.left == null || this.left.root.getValue() == null) {
-                L.root.setValue(null);
+            if (this.left == null || this.left.root.value == null) {
+                L.root.value = null;
             } else {
                 this.left.split(value, L, newTree);
             }
-            R.update(this.root.getValue(), this.root.getPriority(), newTree, this.right);
+            R.update(this.root.key, this.root.value, this.root.priority, newTree, this.right);
             R.recalc();
         }
     }
 
     // add node to this treap
-    public void add(T value, int priority) {
-        Treap l = new Treap(null, 0, null, null);
-        Treap r = new Treap(null, 0, null, null);
+    private void add(K key, V value, int priority) {
+        Treap<K,V> l = new Treap<K,V>(null, null, 0, null, null);
+        Treap<K,V> r = new Treap<K,V>(null, null, 0, null, null);
         this.split(value, l, r);
-        Treap m = new Treap(value, priority, null, null);
+        Treap<K,V> m = new Treap<K,V>(key ,value, priority, null, null);
         this.update(merge(merge(l, m), r));
-    }
-
-    public void add(T value) {
-        Treap l = new Treap(null, 0, null, null);
-        Treap r = new Treap(null, 0, null, null);
-        split(value, l, r);
-        Random rand = new Random();
-        Treap m = new Treap(value, rand.nextInt(Integer.MAX_VALUE - 1), null, null);
-        this.update(merge(merge(l, m), r));
-    }
-
-    // return treap with new node
-    public Treap<T> createWithAdd(T value, int priority) {
-        Treap<T> l = new Treap<T>(null, 0, null, null);
-        Treap<T> r = new Treap<T>(null, 0, null, null);
-        split(value, l, r);
-        Treap<T> m = new Treap<T>(value, priority, null, null);
-        return merge(merge(l, m), r);
     }
 
     // remove node
-    public void remove(T x) {
-        Treap<T> l = new Treap<T>(null, 0, null, null);
-        Treap<T> r = new Treap<T>(null, 0, null, null);
-        Treap<T> m = new Treap<T>(null, 0, null, null);
+    private void remove(V x) {
+        Treap<K,V> l = new Treap<K,V>(null, null, 0, null, null);
+        Treap<K,V> r = new Treap<K,V>(null, null, 0, null, null);
+        Treap<K,V> m = new Treap<K,V>(null, null, 0, null, null);
+        Treap<K,V> l1 = new Treap<K,V>(null, null, 0, null, null);
         this.split(x, l, r);
-        T tmp;
-        if (l.right == null || l.right.root.getValue() == null) {
-            if (l.left == null || l.left.root.getValue() == null) {
+        V tmp;
+        if (l.right == null || l.right.root.value == null) {
+            if (l.left == null || l.left.root.value == null) {
                 this.update(r);
                 return;
             } else {
-                tmp = l.root.getValue();
+                tmp = l.root.value;
             }
         } else {
-            tmp = l.root.getValue();
+            tmp = l.root.value;
         }
-        l.split(tmp, m, l);
-        this.update(merge(l, r));
+
+        l.split(tmp, m, l1);
+        this.update(merge(l1, r));
     }
 
-    protected void recalc() {
+    private void recalc() {
         this.size = sizeOf(this.left) + sizeOf(this.right) + 1;
     }
 
-    public static int sizeOf(Treap treap) {
-        return treap == null || treap.root.getValue() == null ? 0 : treap.size;
+    private static int sizeOf(Treap treap) {
+        return treap == null || treap.root.value== null ? 0 : treap.size;
     }
 
-    public TreapNode<T> kthNode(int K) {
-        Treap cur = this;
-        while (cur != null || cur.root.getValue() != null)
+    private TreapNode<K,V> kthNode(int K) {
+        Treap<K,V> cur = this;
+        while (cur != null || cur.root.value != null)
         {
             int sizeLeft = sizeOf(cur.left);
 
             if (sizeLeft == K)
-                return (TreapNode<T>) cur.root;
+                return cur.root;
 
             cur = sizeLeft > K ? cur.left : cur.right;
             if (sizeLeft < K)
@@ -159,146 +143,227 @@ public class Treap<T extends Comparable> implements Cloneable, SortedMap {
         return null;
     }
 
-    public int kOfNode(T node) {
+    private int kOfNodeKey(K key) {
         for (int i = 0; i < sizeOf(this); i++)
         {
-            if (node.equals(kthNode(i).getValue())) {
+            if (key.equals(kthNode(i).key)) {
                 return i;
             }
         }
         return -1;
     }
 
+    private class TreapNode<K,V extends Comparable<V>>
+    {
+        K key;
+        V value;
+        int priority;
 
-    public Comparator comparator() {
-        return this.comparator;
+        public TreapNode(K key,V value, int priority)
+        {
+            this.key = key;
+            this.value = value;
+            this.priority = priority;
+        }
+
+        public void displayNode()
+        {
+            System.out.println(this.toString());
+        }
+
+        @Override
+        public boolean equals(Object node) {
+            TreapNode<K,V> tmp = (TreapNode<K,V>) node;
+            if (this.value.equals(tmp.value) && (this.priority == tmp.priority)
+                   && this.key.equals(tmp.key)) {
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return ("key: " + this.key + " | value: " + this.value + " | priority: " + this.priority);
+
+        }
     }
 
-    public SortedMap subMap(Object fromKey, Object toKey) {
-        int fromK = this.kOfNode((T)fromKey);
-        int toK = this.kOfNode((T)toKey);
+    public void dispay () {
+        queueNodes(this);
+    }
+
+    private void queueNodes(Treap<K,V> locRoot)
+        {
+            Treap<K,V> x = locRoot;
+            if (x == null)
+            {
+                return;
+            } else
+                for (int i = 0; i < sizeOf(this); i++) {
+                    kthNode(i).displayNode();
+                }
+        }
+
+    public Comparator comparator() {
+        return null;
+    }
+
+    public SortedMap<K,V> subMap(Object fromKey, Object toKey) {
+        int fromK = this.kOfNodeKey((K)fromKey);
+        int toK = this.kOfNodeKey((K)toKey);
         if (fromK == -1 || toK == -1 || toK < fromK) {
             return null;
         }
-        Treap subMap = new Treap(kthNode(fromK).getValue(), kthNode(fromK).getPriority(), null, null);
+        TreapNode<K,V> afr = kthNode(fromK);
+        Treap<K,V> subMap = new Treap<K,V>(afr.key ,afr.value, afr.priority, null, null);
         for (int i = fromK + 1; i <= toK; i++)
         {
-            TreapNode<T> tmp = kthNode(i);
-            subMap.add(tmp.getValue(), tmp.getPriority());
+            TreapNode<K,V> tmp = kthNode(i);
+            subMap.add(tmp.key, tmp.value, tmp.priority);
         }
         return subMap;
     }
 
-    public SortedMap headMap(Object toKey) {
-        int toK = this.kOfNode((T)toKey);
+    public SortedMap<K,V> headMap(Object toKey) {
+        int toK = this.kOfNodeKey((K)toKey);
         if (toK == -1)
         {
-            return null;
+            return new Treap<K,V>(null, null, 0, null, null);
         }
-        TreapNode<T> tmp1 = this.kthNode(toK);
-        Treap headMap = new Treap(tmp1.getValue(), tmp1.getPriority(), null, null);
+        TreapNode<K,V> tmp1 = this.kthNode(toK);
+        Treap<K,V> headMap = new Treap<K,V>(tmp1.key, tmp1.value, tmp1.priority, null, null);
         for (int i = 0; i < toK; i++)
         {
-            TreapNode<T> tmp = this.kthNode(i);
-            headMap.add(tmp.getValue(), tmp.getPriority());
+            TreapNode<K,V> tmp = this.kthNode(i);
+            headMap.add(tmp.key ,tmp.value, tmp.priority);
         }
         return headMap;
     }
 
-    public SortedMap tailMap(Object fromKey) {
-        int fromK = kOfNode((T)fromKey);
+    public SortedMap<K,V> tailMap(Object fromKey) {
+        int fromK = kOfNodeKey((K)fromKey);
         if (fromK == -1)
         {
-            return null;
+            return new Treap<K,V>(null, null, 0, null, null);
         }
-        TreapNode<T> tmp1 = kthNode(fromK);
-        Treap<T> tailMap = new Treap<T>(tmp1.getValue(), tmp1.getPriority(), null, null);
+        TreapNode<K,V> tmp1 = kthNode(fromK);
+        Treap<K,V> tailMap = new Treap<K,V>(tmp1.key, tmp1.value, tmp1.priority, null, null);
         for (int i = (fromK +1); i < sizeOf(this); i++)
         {
-            TreapNode<T> tmp = kthNode(i);
-            tailMap.add(tmp.getValue(), tmp.getPriority());
+            TreapNode<K,V> tmp = kthNode(i);
+            tailMap.add(tmp.key ,tmp.value, tmp.priority);
         }
         return tailMap;
     }
 
-    public Object firstKey() {
-        return kthNode(0).getValue();
+    public K firstKey() {
+        if (kthNode(0) == null)
+            throw new NullPointerException("empty map");
+        else
+            return kthNode(0).key;
     }
 
-    public Object lastKey() {
-        return kthNode(sizeOf(this) - 1).getValue();
+    public K lastKey() {
+        if (kthNode(sizeOf(this) - 1) == null)
+            throw new NullPointerException("empty map");
+        else
+            return kthNode(sizeOf(this) - 1).key;
     }
+
+
 
     public int size() {
         return sizeOf(this);
     }
 
     public boolean isEmpty() {
-        if (root.getValue() == null) {
+        if (root.value == null) {
             return true;
         }
         return false;
     }
 
     public boolean containsKey(Object key) {
-        return kOfNode((T)key) != -1;
+        return kOfNodeKey((K)key) != -1;
     }
 
-    // Because value == key in Treap!!
     public boolean containsValue(Object value) {
-        return containsKey(value);
+        for (int i = 0; i < sizeOf(this); i++)
+        {
+            if (value.equals(kthNode(i).value)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public Object get(Object key) {
+    public V get(Object key) {
         if (!containsKey(key)) {
             return null;
         }
-        return kthNode(kOfNode((T) key));
+        return kthNode(kOfNodeKey((K) key)).value;
     }
 
-    public Object put(Object key, Object value) {
-        if (key.equals(value)) {
-            this.add((T)value);
+    public V put(K key, V value) {
+        if (containsKey(key)) {
+            V tmp = this.remove(key);
+            this.add(key, value, new Random().nextInt(Integer.MAX_VALUE));
+            return tmp;
+        } else {
+            this.add(key, value, new Random().nextInt(Integer.MAX_VALUE));
+            return null;
         }
-        return null;
     }
 
-    public Object remove(Object key) {
+    public V put(K key, V value, int priority) {
+        if (containsKey(key)) {
+            V tmp = this.remove(key);
+            this.add(key, value, priority);
+            return tmp;
+        } else {
+            this.add(key, value, priority);
+            return null;
+        }
+    }
+
+    public V remove(Object key) {
         if (!containsKey(key)) {
             return null;
         }
-        TreapNode<T> removedNode = kthNode(kOfNode((T)key));
-        this.remove((T) key);
-        return removedNode;
+        V removedValue = kthNode(kOfNodeKey((K)key)).value;
+        this.remove(removedValue);
+        return removedValue;
     }
 
-    public void putAll(Map m) {
-        int size = sizeOf((Treap)m);
-        for (int i = 0; i < size; i++) {
-            TreapNode<T> tmp = ((Treap) m).kthNode(i);
-            this.add(tmp.getValue(), tmp.getPriority());
+    public void putAll(Map<? extends K, ? extends V> m) {
+        for (int i = 0; i < sizeOf((Treap)m); i++){
+            TreapNode<K,V> tmp = kthNode(i);
+            this.put(tmp.key, tmp.value);
         }
     }
 
     public void clear() {
-        this.update(null, 0, null, null);
+        this.update(null, null, 0, null, null);
     }
 
-    public Set keySet() {
-        return (Set)this.values();
+    public Set<K> keySet() {
+        Set<K> keySet = new HashSet<K>();
+        for (int i = 0; i < (sizeOf(this) - 1); i++){
+            keySet.add(kthNode(i).key);
+        }
+        return keySet;
     }
 
-    public Collection values() {
-        Collection<T> keys = new ArrayList<T>();
+    public Collection<V> values() {
+        Collection<V> values = new ArrayList<V>();
         for (int i = 0; i < sizeOf(this); i++)
         {
-            keys.add(kthNode(i).getValue());
+            values.add(kthNode(i).value);
         }
-        return keys;
+        return values;
     }
 
-    //it is impossible, because key = value
-    public Set<Entry> entrySet() {
+    public Set<Entry<K, V>> entrySet() {
         return null;
     }
 }
