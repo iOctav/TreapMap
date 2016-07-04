@@ -1,18 +1,21 @@
+package TreapMap;
+
 import com.sun.istack.internal.NotNull;
+
 import java.io.Serializable;
 import java.util.*;
 
 
-public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K,V>, Serializable {
-    private TreapNode<K,V> root;
+public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K, V>, Serializable {
+    private TreapNode<K, V> root;
     private int size;
     private Comparator<? super K> comparator;
 
-    public Treap<K,V> left;
-    public Treap<K,V> right;
+    public Treap<K, V> left;
+    public Treap<K, V> right;
 
-    public Treap(K keyRoot,V valueRoot, int priorityRoot,
-                 Treap<K,V> leftRoot, Treap<K,V> rightRoot) {
+    public Treap(K keyRoot, V valueRoot, int priorityRoot,
+                 Treap<K, V> leftRoot, Treap<K, V> rightRoot) {
         this.root = new TreapNode<K, V>(keyRoot, valueRoot, priorityRoot);
         this.left = leftRoot;
         this.right = rightRoot;
@@ -22,16 +25,20 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
 
     public Treap(K keyRoot, V valueRoot, int priorityRoot,
                  Treap leftRoot, Treap rightRoot, Comparator<K> comparator) {
-        this.root = new TreapNode<K,V>(keyRoot, valueRoot, priorityRoot);
+        this.root = new TreapNode<K, V>(keyRoot, valueRoot, priorityRoot);
         this.left = leftRoot;
         this.right = rightRoot;
         this.size = 1;
         this.comparator = comparator;
     }
 
+    public K getRootKey() {
+        return root.getKey();
+    }
+
     // only for internals methods, refresh values without created new object
-    private void update(K key,V value, int priority,
-                        Treap<K,V> left, Treap<K,V> right, Comparator<? super K> comparator) {
+    private void update(K key, V value, int priority,
+                        Treap<K, V> left, Treap<K, V> right, Comparator<? super K> comparator) {
         this.root.value = value;
         this.root.priority = priority;
         this.root.key = key;
@@ -42,82 +49,63 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
     }
 
     // only for internals methods, refresh values without created new object
-    private void update(Treap<K,V> tree) {
+    private void update(Treap<K, V> tree) {
         this.update(tree.root.key, tree.root.value, tree.root.priority,
-                    tree.left, tree.right, tree.comparator);
+                tree.left, tree.right, tree.comparator);
     }
 
+
+
     // !!!Values Left Treap >= Right Treap!!!
-    private Treap<K,V> merge(Treap<K,V> L, Treap<K,V> R) {
+    private Treap<K, V> merge(Treap<K, V> L, Treap<K, V> R) {
         if (R == null || R.root.key == null) return L;
         if (L == null || L.root.key == null) return R;
 
-        Treap<K,V> ans;
+        Treap<K, V> ans;
         if (L.root.priority > R.root.priority) {
-            Treap<K,V> newR = merge(L.right, R);
-            ans = new Treap<K,V>(L.root.key, L.root.value, L.root.priority,
-                                    L.left, newR);
+            Treap<K, V> newR = merge(L.right, R);
+            ans = new Treap<K, V>(L.root.key, L.root.value, L.root.priority,
+                    L.left, newR);
         } else {
-            Treap<K,V> newL = merge(L, R.left);
-            ans = new Treap<K,V>(R.root.key, R.root.value, R.root.priority,
-                                    newL, R.right);
+            Treap<K, V> newL = merge(L, R.left);
+            ans = new Treap<K, V>(R.root.key, R.root.value, R.root.priority,
+                    newL, R.right);
         }
         ans.recalc();
         return ans;
     }
 
     // !!! need L and R Treap with root.value = null !!!
-    private void split(K key, @NotNull Treap<K,V> L, @NotNull Treap<K,V> R) {
-        Treap<K,V> newTree = new Treap<K,V>(null, null, 0, null, null);
+    private void split(K key, @NotNull Treap<K, V> L, @NotNull Treap<K, V> R) {
+        Treap<K, V> newTree = new Treap<K, V>(null, null, 0, null, null);
         int compare = this.root.key.compareTo(key);
-        if (compare <= 0)
-        {
+        if (compare <= 0) {
             if (this.right == null || this.right.root.key == null) {
                 R.root.key = null;
             } else {
                 right.split(key, newTree, R);
             }
             L.update(this.root.key, this.root.value, this.root.priority,
-                                this.left, newTree, this.comparator);
-        }
-        else
-        {
+                    this.left, newTree, this.comparator);
+        } else {
             if (this.left == null || this.left.root.key == null) {
                 L.root.key = null;
             } else {
                 this.left.split(key, L, newTree);
             }
             R.update(this.root.key, this.root.value, this.root.priority,
-                                newTree, this.right, this.comparator);
+                    newTree, this.right, this.comparator);
         }
     }
 
     // add node to this treap
     private void add(K key, V value, int priority) {
-        Treap<K,V> l = new Treap<K,V>(null, null, 0, null, null);
-        Treap<K,V> r = new Treap<K,V>(null, null, 0, null, null);
+        Treap<K, V> l = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> r = new Treap<K, V>(null, null, 0, null, null);
         this.split(key, l, r);
-        Treap<K,V> m = new Treap<K,V>(key ,value, priority,
-                                                null, null);
+        Treap<K, V> m = new Treap<K, V>(key, value, priority,
+                null, null);
         this.update(merge(merge(l, m), r));
-    }
-
-    // remove node
-    private void remove(K x) {
-        Treap<K,V> l = new Treap<K,V>(null, null, 0, null, null);
-        Treap<K,V> r = new Treap<K,V>(null, null, 0, null, null);
-        Treap<K,V> m = new Treap<K,V>(null, null, 0, null, null);
-        Treap<K,V> l1 = new Treap<K,V>(null, null, 0, null, null);
-        int numb = kOfNodeKey(x);
-        if (numb == 0) {
-            this.split(x, l, r);
-            this.update(r);
-        } else if (numb == -1) {
-            return;
-        }
-        this.split(kthNode(numb - 1).getKey(), l, r);
-        r.split(x, m, l1);
-        this.update(merge(l,l1));
     }
 
     private void recalc() {
@@ -125,13 +113,12 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
     }
 
     private static int sizeOf(Treap treap) {
-        return treap == null || treap.root.value== null ? 0 : treap.size;
+        return treap == null || treap.root.value == null ? 0 : treap.size;
     }
 
-    private TreapNode<K,V> kthNode(int K) {
-        Treap<K,V> cur = this;
-        while (cur != null || cur.root.key != null)
-        {
+    private TreapNode<K, V> kthNode(int K) {
+        Treap<K, V> cur = this;
+        while (cur != null || cur.root.key != null) {
             int sizeLeft = sizeOf(cur.left);
 
             if (sizeLeft == K)
@@ -144,24 +131,12 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
         return null;
     }
 
-    private int kOfNodeKey(K key) {
-        for (int i = 0; i < sizeOf(this); i++)
-        {
-            if (key.equals(kthNode(i).key)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private class TreapNode<K extends Comparable<K>,V>
-    {
+    private class TreapNode<K extends Comparable<K>, V> {
         K key;
         V value;
         int priority;
 
-        public TreapNode(K key,V value, int priority)
-        {
+        public TreapNode(K key, V value, int priority) {
             this.key = key;
             this.value = value;
             this.priority = priority;
@@ -172,9 +147,9 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
             if (!node.getClass().equals(this.getClass())) {
                 return false;
             }
-            TreapNode<K,V> tmp = (TreapNode<K,V>) node;
-            if (this.value.equals(tmp.value) && (this.priority == tmp.priority)
-                   && this.key.equals(tmp.key)) {
+            TreapNode<K, V> cmn = (TreapNode<K, V>) node;
+            if (this.value.equals(cmn.value) && (this.priority == cmn.priority)
+                    && this.key.equals(cmn.key)) {
                 return true;
             }
             return false;
@@ -194,7 +169,7 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(this.getKey());
+            return Objects.hash(this.key, this.value, this.priority);
         }
 
         @Override
@@ -209,50 +184,66 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
     }
 
     public SortedMap<K, V> subMap(K fromKey, K toKey) {
-        try {
-            Treap<K, V> subMap = (Treap<K,V>)this.clone();
-            Treap<K,V> l = new Treap<K,V>(null, null, 0, null, null);
-            Treap<K,V> r = new Treap<K,V>(null, null, 0, null, null);
-            Treap<K,V> r1 = new Treap<K,V>(null, null, 0, null, null);
-            int numb = kOfNodeKey(fromKey);
-            if (numb > 0) {
-                subMap.split(kthNode(numb - 1).getKey(), l, r);
+        Treap<K, V> l = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> r = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> r1 = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> l2 = new Treap<K, V>(null, null, 0, null, null);
+        if (fromKey.equals(toKey)) {
+            this.split(fromKey, l, r);
+            Treap<K, V> l1 = l;
+            r1 = l;
+            if (l.size() > 1) {
+                if (l.root.getKey().equals(fromKey))
+                    r1 = l;
+                else {
+                    while (!l1.right.root.getKey().equals(fromKey)) {
+                        l1 = l1.right;
+                    }
+                    l.split(l1.root.getKey(), l2, r1);
+                }
             }
-            l.update(null, null, 0, null, null, null);
-            r.split(toKey, l, r1);
-            return l;
-        } catch (CloneNotSupportedException ex) {
-            return null;
+            return r1;
         }
+        return this.tailMap(fromKey).headMap(toKey);
     }
 
     public SortedMap<K, V> headMap(K toKey) {
-        try {
-            Treap<K, V> subMap = (Treap<K,V>)this.clone();
-            Treap<K,V> l = new Treap<K,V>(null, null, 0, null, null);
-            Treap<K,V> r = new Treap<K,V>(null, null, 0, null, null);
-            subMap.split(toKey, l, r);
-            return l;
-        } catch (CloneNotSupportedException ex) {
-            return null;
+        Treap<K, V> l = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> r = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> l2 = new Treap<K, V>(null, null, 0, null, null);
+        this.split(toKey, l, r);
+        Treap<K, V> l1 = l;
+        if (l.size() > 1) {
+            if (l.root.getKey().equals(toKey))
+                l2 = l.left;
+            else {
+                while (!l1.right.root.getKey().equals(toKey)) {
+                    l1 = l1.right;
+                }
+                l.split(l1.root.getKey(), l2, r);
+            }
         }
+        return l2;
     }
 
     public SortedMap<K, V> tailMap(K fromKey) {
-        try {
-            Treap<K, V> subMap = (Treap<K,V>)this.clone();
-            Treap<K,V> l = new Treap<K,V>(null, null, 0, null, null);
-            Treap<K,V> r = new Treap<K,V>(null, null, 0, null, null);
-            int numb = kOfNodeKey(fromKey);
-            if (numb > 0) {
-                subMap.split(kthNode(numb - 1).getKey(), l, r);
-            } else {
-                return subMap;
+        Treap<K, V> l = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> r = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> l2 = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> r1 = new Treap<K, V>(null, null, 0, null, null);
+        this.split(fromKey, l, r);
+        Treap<K, V> l1 = l;
+        if (l.size() > 1) {
+            if (l.root.getKey().equals(fromKey))
+                r1 = l;
+            else {
+                while (!l1.right.root.getKey().equals(fromKey)) {
+                    l1 = l1.right;
+                }
+                l.split(l1.root.getKey(), l2, r1);
             }
-            return r;
-        } catch (CloneNotSupportedException ex) {
-            return null;
         }
+        return merge(r1, r);
     }
 
     public K firstKey() {
@@ -282,19 +273,17 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
 
     public boolean containsKey(Object key) {
         try {
-            Treap<K,V> tmp = (Treap<K,V>)this.clone();
+            Treap<K, V> tmp = (Treap<K, V>) this.clone();
             while (tmp.root.getKey() != null) {
                 int cmp = tmp.root.getKey().compareTo((K) key);
                 if (cmp < 0) {
-                    if ((tmp.right == null) || (tmp.right.root.getValue() == null))
-                    {
+                    if ((tmp.right == null) || (tmp.right.root.getValue() == null)) {
                         return false;
                     }
                     tmp = tmp.right;
                 } else {
-                    if(cmp > 0) {
-                        if ((tmp.left == null) || (tmp.left.root.getValue() == null))
-                        {
+                    if (cmp > 0) {
+                        if ((tmp.left == null) || (tmp.left.root.getValue() == null)) {
                             return false;
                         }
                         tmp = tmp.left;
@@ -327,11 +316,20 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
     }
 
     public V get(Object key) {
-        int chk = kOfNodeKey((K) key);
-        if (chk == -1) {
-            return null;
+        V cmnValue = null;
+        if (key == this.root.getKey()) {
+            cmnValue = this.root.getValue();
+        } else {
+            int compare = this.root.getKey().compareTo((K) key);
+            if (compare < 0 && this.right != null && this.right.root.getValue()!= null) {
+                cmnValue = this.right.get(key);
+            } else {
+                if (this.left != null && this.left.root.getValue()!= null) {
+                    cmnValue = this.left.get(key);
+                }
+            }
         }
-        return kthNode(chk).getValue();
+        return cmnValue;
     }
 
     public V put(K key, V value) {
@@ -356,14 +354,37 @@ public class Treap<K extends Comparable<K>, V> implements Cloneable, SortedMap<K
         }
     }
 
+    // remove node
     public V remove(Object key) {
-        int chk = kOfNodeKey((K) key);
-        if (chk == -1) {
+        if (!containsKey(key))
+        {
             return null;
         }
-        TreapNode<K,V> tmp = kthNode(chk);
-        this.remove(tmp.getKey());
-        return tmp.getValue();
+        Treap<K, V> l = new Treap<K, V>(null, null, 0, null, null);
+        if ((this.size() == 1) && (this.containsKey(key))) {
+            this.update(l);
+            return this.root.getValue();
+        } else if (this.size() == 0) {
+            return null;
+        }
+        V value = this.get(key);
+        Treap<K, V> r = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> m = new Treap<K, V>(null, null, 0, null, null);
+        Treap<K, V> l2 = new Treap<K, V>(null, null, 0, null, null);
+        this.split((K)key, l, r);
+        Treap<K, V> l1 = l;
+        if (l.size() > 1) {
+            if (l.root.getKey().equals(key))
+                l2 = l.left;
+            else {
+                while (!l1.right.root.getKey().equals(key)) {
+                    l1 = l1.right;
+                }
+                l.split(l1.root.getKey(), l2, m);
+            }
+        }
+        this.update(merge(l2, r));
+        return value;
     }
 
     public void putAll(Map<? extends K, ? extends V> m) {
