@@ -358,7 +358,10 @@ public class TreapMap<K extends Comparable<K>, V> implements Cloneable, SortedMa
 
     //add new key+value and return value, if key was initialization
     public V put(K key, V value, int priority) {
-        V tmp = this.get(key);
+        V tmp = null;
+        if (this.size() > 1) {
+            tmp = this.get(key);
+        }
         if (tmp != null) {
             this.add(key, value, priority);
             return tmp;
