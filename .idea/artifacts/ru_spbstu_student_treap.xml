@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="ru.spbstu.student.treap">
-    <output-path>$PROJECT_DIR$/out/artifacts/ru_spbstu_student_treap</output-path>
-    <root id="archive" name="ru.spbstu.student.treap.jar">
-      <element id="module-output" name="Treap" />
-    </root>
-  </artifact>
-</component>

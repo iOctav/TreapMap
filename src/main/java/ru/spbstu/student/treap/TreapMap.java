@@ -259,6 +259,19 @@ public class TreapMap<K extends Comparable<K>, V> implements Cloneable, SortedMa
         return merge(r1, r);
     }
 
+    public List<V> firstValues() {
+        if (kthNode(0) == null)
+            throw new NoSuchElementException("empty map");
+        else {
+            List<V> listValues = new ArrayList<V>();
+            listValues.add(kthNode(0).getValue());
+            for (int i = 1; kthNode(i).getValue().equals(listValues.get(0)); i++) {
+                listValues.add(i, kthNode(i).getValue());
+            }
+            return listValues;
+        }
+    }
+
     public K firstKey() {
         if (kthNode(0) == null)
             throw new NoSuchElementException("empty map");
