@@ -127,7 +127,7 @@ public class TreapMap<K extends Comparable<K>, V> implements Cloneable, SortedMa
 
     private TreapNode<K,V> kthNode(int K) {
         TreapMap<K, V> cur = this;
-        while (cur != null || cur.root.key != null) {
+        while (cur != null | cur.root.key != null) {
             int sizeLeft = sizeOf(cur.left);
 
             if (sizeLeft == K)
@@ -260,13 +260,18 @@ public class TreapMap<K extends Comparable<K>, V> implements Cloneable, SortedMa
     }
 
     public List<V> firstValues() {
-        if (kthNode(0) == null)
+        TreapNode<K,V> firstNode = kthNode(0);
+        if (firstNode.getKey() == null)
             throw new NoSuchElementException("empty map");
         else {
             List<V> listValues = new ArrayList<V>();
-            listValues.add(kthNode(0).getValue());
-            for (int i = 1; kthNode(i).getValue().equals(listValues.get(0)); i++) {
-                listValues.add(i, kthNode(i).getValue());
+            listValues.add(firstNode.getValue());
+            if (this.size() > 1) {
+                int i = 1;
+                while ((i < this.size()) && (kthNode(i).getKey().equals(firstNode.getKey()))) {
+                    listValues.add(i, kthNode(i).getValue());
+                    i++;
+                }
             }
             return listValues;
         }

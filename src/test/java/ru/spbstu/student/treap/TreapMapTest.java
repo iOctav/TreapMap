@@ -78,6 +78,20 @@ public class TreapMapTest {
     }
 
     @Test
+    public void testFirstValues() throws Exception {
+        TreapMap<Integer, Integer> first = new TreapMap<Integer, Integer>(1200, 3, 4,
+                null, null);
+        Random rand = new Random();
+        int N = 10000;
+        for (int i = 0; i < N; i++) {
+            first.put(234, rand.nextInt(), 4);
+        }
+        List<Integer> arr = new ArrayList<Integer>();
+        arr = first.firstValues();
+        assertEquals(arr.size(), first.size() - 1);
+    }
+
+    @Test
     public void testIsEmpty() throws Exception {
         TreapMap<Integer, Integer> first = new TreapMap<Integer, Integer>(12, 3, 4,
                 null, null);
